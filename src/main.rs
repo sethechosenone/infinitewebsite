@@ -4,7 +4,7 @@ extern crate rocket;
 use std::path::PathBuf;
 use dotenv::dotenv;
 use openai::{chat::{ChatCompletion, ChatCompletionMessage, ChatCompletionMessageRole}, Credentials};
-use rocket::{routes, Config, http::ContentType};
+use rocket::{routes, http::{ContentType, uri::Origin}};
 
 const PROMPT: &'static str = "\
 You are managing the response for The Infinite Website, a website that has an infinite number of endpoints and paths. \
@@ -18,13 +18,18 @@ e.g. <!DOCTYPE html> instead of <!doctype html>. If possible for the selected re
 ";
 
 #[get("/<path..>")]
-async fn respond(path: PathBuf) -> (ContentType, String) {
+async fn respond(path: PathBuf, uri: &Origin<'_>) -> (ContentType, String) {
 	dotenv().ok();
 
-	let full_path = String::from("/") + path.to_str().unwrap();
+	let query_string = uri.query().map(|q| q.as_str()).unwrap_or("");
+	let full_request = if query_string.is_empty() {
+		format!("/{}", path.display())
+	} else {
+		format!("/{}?{}", path.display(), query_string)
+	};
 	let credentials = Credentials::from_env();
 
-	println!("AI will provide response for this path: {}", &full_path);
+	println!("AI will provide response for this path: {}", &full_request);
 
 	let messages = vec![
 		ChatCompletionMessage {
@@ -37,7 +42,7 @@ async fn respond(path: PathBuf) -> (ContentType, String) {
 		},
 		ChatCompletionMessage {
 			role: ChatCompletionMessageRole::User,
-			content: Some(full_path),
+			content: Some(full_request),
 			name: None,
 			function_call: None,
 			tool_call_id: None,
@@ -73,10 +78,5 @@ async fn respond(path: PathBuf) -> (ContentType, String) {
 
 #[launch]
 fn rocket() -> _ {
-	rocket::build()
-	.configure(Config {
-		
-		..Config::default()
-	})
-	.mount("/", routes![respond])
+	rocket::build().mount("/", routes![respond])
 }
