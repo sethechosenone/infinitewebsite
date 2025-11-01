@@ -49,7 +49,7 @@ async fn respond(path: PathBuf) -> (ContentType, String) {
 	println!(" - system: {:?}", messages[0].content.as_ref().unwrap());
 	println!(" - user: {:?}", messages[1].content.as_ref().unwrap());
 	
-	let chat_completion = ChatCompletion::builder("gpt-4o-mini", messages)
+	let chat_completion = ChatCompletion::builder("gpt-5-nano", messages)
 		.credentials(credentials)
 		.create()
 		.await
