@@ -6,17 +6,15 @@ use dotenv::dotenv;
 use openai::{chat::{ChatCompletion, ChatCompletionMessage, ChatCompletionMessageRole}, Credentials};
 use rocket::{routes, http::{ContentType, uri::Origin}, Data, data::ToByteUnit};
 
-const PROMPT: &'static str = "\
+const SYSTEM_PROMPT: &'static str = "\
 You are managing the response for The Infinite Website, a website that has an infinite number of endpoints and paths. \
 This is achieved using an AI-generated response based on the given path/endpoint. \
-You will be provided with a path/endpoint, and you must respond ONLY with a fitting response. \
+You will be provided with a request method and path/endpoint, and you must respond ONLY with a fitting response. \
 Do not include any indication of language (```json, ```xml, etc.), only respond in plain text.
 This response could be HTML, JSON, or whatever seems to fit the requested path. \
 The content of your response should match what the user may be trying to \
 retrieve from the given path/endpoint as closely as possible. Ensure your response is correct and valid (CaSe SeNsItIvE) \
-e.g. <!DOCTYPE html> instead of <!doctype html>. If possible for the selected response format, use CSS styling. \
-If you are responding to a POST request, you will be informed of such.
-";
+e.g. <!DOCTYPE html> instead of <!doctype html>. If possible for the selected response format, use CSS styling.";
 
 #[get("/<path..>")]
 async fn respond(path: PathBuf, uri: &Origin<'_>) -> (ContentType, String) {
@@ -24,9 +22,9 @@ async fn respond(path: PathBuf, uri: &Origin<'_>) -> (ContentType, String) {
 
 	let query_string = uri.query().map(|q| q.as_str()).unwrap_or("");
 	let full_request = if query_string.is_empty() {
-		format!("/{}", path.display())
+		format!("GET /{}", path.display())
 	} else {
-		format!("/{}?{}", path.display(), query_string)
+		format!("GET /{}?{}", path.display(), query_string)
 	};
 	let credentials = Credentials::from_env();
 
@@ -35,7 +33,7 @@ async fn respond(path: PathBuf, uri: &Origin<'_>) -> (ContentType, String) {
 	let messages = vec![
 		ChatCompletionMessage {
 			role: ChatCompletionMessageRole::System,
-			content: Some(PROMPT.to_string()),
+			content: Some(SYSTEM_PROMPT.to_string()),
 			name: None,
 			function_call: None,
 			tool_call_id: None,
@@ -104,7 +102,7 @@ async fn respond_post(path: PathBuf, uri: &Origin<'_>, body: Data<'_>) -> (Conte
 	let messages = vec![
 		ChatCompletionMessage {
 			role: ChatCompletionMessageRole::System,
-			content: Some(PROMPT.to_string()),
+			content: Some(SYSTEM_PROMPT.to_string()),
 			name: None,
 			function_call: None,
 			tool_call_id: None,
