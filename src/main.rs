@@ -17,7 +17,7 @@ retrieve from the given path/endpoint as closely as possible. Ensure your respon
 e.g. <!DOCTYPE html> instead of <!doctype html>. If possible for the selected response format, use CSS styling.";
 
 #[get("/<path..>")]
-async fn respond(path: PathBuf, uri: &Origin<'_>) -> (ContentType, String) {
+async fn respond_get(path: PathBuf, uri: &Origin<'_>) -> (ContentType, String) {
 	dotenv().ok();
 
 	let query_string = uri.query().map(|q| q.as_str()).unwrap_or("");
@@ -146,5 +146,5 @@ async fn respond_post(path: PathBuf, uri: &Origin<'_>, body: Data<'_>) -> (Conte
 
 #[launch]
 fn rocket() -> _ {
-	rocket::build().mount("/", routes![respond, respond_post])
+	rocket::build().mount("/", routes![respond_get, respond_post])
 }
