@@ -2,6 +2,10 @@
 
 A website where every single HTTP response is AI generated on-the-fly for each request. This means that anything that you type in the URL bar (for path or query parameters) will be valid!
 
+## How to use
+
+Go to [https://theinfinitewebsite.dev]/\<anything\>
+
 ## Why?
 
 Honestly, it's just a fun thought experiment. The website is entirely stateless and volatile, and yet...functional?
@@ -25,10 +29,13 @@ so when your browser makes a request for /favicon.ico, it will also be AI genera
 To run the Infinite Website locally, you will need to have Rust and its tools installed.
 
 1. Clone the repo
-2. Create a .env file in the project root with OPENAI_KEY=<your-openai-key>
+2. Create a .env file in the project root with OPENAI_KEY=\<your-openai-key\>
 3. Run ```cargo run``` to start the server.
 
 ## How to contribute
 
 I honestly don't know how long I'm going to keep this up, if you want to contribute DM me on discord (sethechosenone) and we can figure something out.
 When contributing, be aware that the default branch is master instead of main (since Nix is a bit outdated in that regard. It tripped me up a bit when I first realized).
+
+
+(fun fact: this README was partially made by prompt-injecting the website using the URL bar, asking it to generate a README for this project!)
