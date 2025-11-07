@@ -4,7 +4,7 @@ A website where every single HTTP response is AI generated on-the-fly for each r
 
 ## How to use
 
-Go to [https://theinfinitewebsite.dev]/\<anything\>
+Go to https://theinfinitewebsite.dev/<anything\>
 
 ## Why?
 
