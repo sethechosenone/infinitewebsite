@@ -2,3 +2,6 @@
 /.direnv
 /result
 .env
+/terraform/.terraform*
+*.tfvars
+*.tfstate*

@@ -13,6 +13,7 @@
         overlays = [ (import rust-overlay) ];
         pkgs = import nixpkgs {
           inherit system overlays;
+          config.allowUnfree = true;
         };
       in
       {
@@ -26,6 +27,8 @@
             rust-analyzer
             pkg-config
             openssl
+            terraform
+            awscli2
           ];
 
           shellHook = ''

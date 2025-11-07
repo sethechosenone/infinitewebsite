@@ -1,10 +1,13 @@
 #[macro_use]
 extern crate rocket;
 
+mod guards;
+
 use std::path::PathBuf;
 use dotenv::dotenv;
 use openai::{chat::{ChatCompletion, ChatCompletionMessage, ChatCompletionMessageRole}, Credentials};
 use rocket::{routes, http::{ContentType, uri::Origin}, Data, data::ToByteUnit};
+use guards::UserAgent;
 
 const SYSTEM_PROMPT: &'static str = "\
 You are managing the response for The Infinite Website, a website that has an infinite number of endpoints and paths. \
@@ -13,13 +16,16 @@ You will be provided with a request method and path/endpoint, and you must respo
 Do not include any indication of language (```json, ```xml, etc.), only respond in plain text. \
 This response could be HTML, JSON, or whatever seems to fit the requested path. \
 If you are requested to generate a favicon.ico, you should generate a fitting favicon in svg format. \
-The content of your response should match what the user may be trying to \
-retrieve from the given path/endpoint as closely as possible. Ensure your response is correct and valid (CaSe SeNsItIvE) \
-e.g. <!DOCTYPE html> instead of <!doctype html>. If possible for the selected response format, use CSS styling.";
+The content of your response should match what the user may be trying to retrieve from the given path/endpoint as closely as possible. \
+Ensure your response is correct and valid (CaSe SeNsItIvE) e.g. <!DOCTYPE html> instead of <!doctype html>. \
+If possible for the selected response format, use CSS styling.";
 
 #[get("/<path..>")]
-async fn respond_get(path: PathBuf, uri: &Origin<'_>) -> (ContentType, String) {
-	dotenv().ok();
+async fn respond_get(path: PathBuf, uri: &Origin<'_>, user_agent: UserAgent) -> (ContentType, String) {
+	if user_agent.is_health_check() {
+		println!("Health check detected, returning minimal response without AI call");
+		return (ContentType::Plain, "OK".to_string());
+	}
 
 	let query_string = uri.query().map(|q| q.as_str()).unwrap_or("");
 	let full_request = if query_string.is_empty() {
@@ -80,8 +86,6 @@ async fn respond_get(path: PathBuf, uri: &Origin<'_>) -> (ContentType, String) {
 
 #[post("/<path..>", data = "<body>")]
 async fn respond_post(path: PathBuf, uri: &Origin<'_>, body: Data<'_>) -> (ContentType, String) {
-	dotenv().ok();
-
 	let query_string = uri.query().map(|q| q.as_str()).unwrap_or("");
 	let body_string = match body.open(8.kilobytes()).into_string().await {
 		Ok(s) => s.into_inner(),
@@ -151,5 +155,6 @@ async fn respond_post(path: PathBuf, uri: &Origin<'_>, body: Data<'_>) -> (Conte
 
 #[launch]
 fn rocket() -> _ {
+	dotenv().ok();
 	rocket::build().mount("/", routes![respond_get, respond_post])
 }
